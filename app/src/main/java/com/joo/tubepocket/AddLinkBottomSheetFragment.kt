@@ -22,6 +22,7 @@ import android.widget.TextView
 class AddLinkBottomSheetFragment : BottomSheetDialogFragment() {
 
     private lateinit var sharedViewModel: SharedViewModel
+
     // [추가] 수정할 데이터를 담을 변수
     private var editingVideo: VideoItem? = null
 
@@ -95,19 +96,27 @@ class AddLinkBottomSheetFragment : BottomSheetDialogFragment() {
                             duration = "0:00",
                             isShorts = link.contains("shorts", ignoreCase = true),
                             thumbnailUrl = fetchedThumb,
-                            timestamp = System.currentTimeMillis(), // Firestore 정렬을 위한 현재 시간 추가
-                            videoUrl = link // 추가된 부분: 원본 유튜브 링크 저장
+                            timestamp = editingVideo?.timestamp
+                                ?: System.currentTimeMillis(), // 수정 시 기존 시간 유지
+                            videoUrl = link
                         )
 
-                        sharedViewModel.addVideo(newVideo)
-                        Toast.makeText(context, "[$folderName] 보관함에 저장되었습니다.", Toast.LENGTH_SHORT).show()
+                        if (editingVideo != null) {
+                            // [핵심] 기존 영상이 있으면 업데이트
+                            sharedViewModel.updateVideo(editingVideo!!, newVideo)
+                            Toast.makeText(context, "영상 정보가 수정되었습니다.", Toast.LENGTH_SHORT).show()
+                        } else {
+                            // [핵심] 없으면 새로 저장
+                            sharedViewModel.addVideo(newVideo)
+                            Toast.makeText(context, "보관함에 저장되었습니다.", Toast.LENGTH_SHORT).show()
+                        }
                         dismiss()
                     }
                 } catch (e: Exception) {
                     withContext(Dispatchers.Main) {
                         btnSaveLink.isEnabled = true
-                        btnSaveLink.text = "보관함에 저장하기"
-                        Toast.makeText(context, "유튜브 링크 정보를 불러오는데 실패했습니다.", Toast.LENGTH_SHORT).show()
+                        btnSaveLink.text = if (editingVideo != null) "수정하기" else "보관함에 저장하기"
+                        Toast.makeText(context, "정보를 불러오는데 실패했습니다.", Toast.LENGTH_SHORT).show()
                     }
                 }
             }

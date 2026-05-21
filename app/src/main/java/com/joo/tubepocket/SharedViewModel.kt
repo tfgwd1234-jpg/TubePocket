@@ -69,15 +69,15 @@ class SharedViewModel : ViewModel() {
             _videoList.value = ArrayList(currentList)
         }
     }
-    // SharedViewModel.kt에 추가
-    fun updateVideo(oldUrl: String, newItem: VideoItem) {
+    // 데이터 수정 함수
+    fun updateVideo(oldVideo: VideoItem, newVideo: VideoItem) {
         db?.collection("videos")
-            ?.whereEqualTo("videoUrl", oldUrl)
+            ?.whereEqualTo("timestamp", oldVideo.timestamp) // 같은 시간값인 데이터를 찾아요
             ?.get()
-            ?.addOnSuccessListener { querySnapshot ->
-                for (document in querySnapshot) {
-                    // 문서 ID를 찾아 데이터를 덮어씀
-                    db?.collection("videos")?.document(document.id)?.set(newItem)
+            ?.addOnSuccessListener { documents ->
+                for (document in documents) {
+                    // 찾은 문서의 내용을 newVideo 정보로 싹 바꿔줍니다
+                    db?.collection("videos")?.document(document.id)?.set(newVideo)
                 }
             }
     }

@@ -64,7 +64,7 @@ class MainActivity : AppCompatActivity() {
     }
 
     // 클릭된 메뉴에 따라 색상과 글씨 굵기를 변경하는 함수
-    private fun updateMenuUI(isHomeActive: Boolean) {
+    fun updateMenuUI(isHomeActive: Boolean) {
         val activeColor = ContextCompat.getColor(this, R.color.main_red)
         val inactiveColor = ContextCompat.getColor(this, R.color.text_gray)
 
