@@ -10,6 +10,30 @@ import com.google.firebase.firestore.Query
 class SharedViewModel : ViewModel() {
 
     private val _videoList = MutableLiveData<MutableList<VideoItem>>(mutableListOf())
+    // 1. 폴더 리스트를 보관하는 변수
+    private val _folderList = MutableLiveData<MutableList<FolderItem>>(mutableListOf())
+    val folderList: LiveData<MutableList<FolderItem>> get() = _folderList
+
+    // 2. 파이어베이스에서 폴더 목록을 가져오는 함수 (init 블록 안에 fetchFoldersFromFirebase() 도 호출하게 해주세요)
+    fun fetchFoldersFromFirebase() {
+        db?.collection("folders")
+            ?.addSnapshotListener { snapshot, e ->
+                if (snapshot != null && !snapshot.isEmpty) {
+                    val list = mutableListOf<FolderItem>()
+                    for (doc in snapshot) {
+                        val item = doc.toObject(FolderItem::class.java)
+                        list.add(item)
+                    }
+                    _folderList.value = list
+                }
+            }
+    }
+
+    // 3. 새 폴더를 파이어베이스에 저장하는 함수
+    fun addFolder(folder: FolderItem) {
+        // 폴더 이름을 파이어베이스 문서 ID로 사용해서 중복을 막아요!
+        db?.collection("folders")?.document(folder.name)?.set(folder)
+    }
     val videoList: LiveData<MutableList<VideoItem>> get() = _videoList
 
     // db 변수를 nullable(?)로 변경하여 에러 발생 시 앱이 꺼지지 않도록 1차 방어합니다.
@@ -28,8 +52,12 @@ class SharedViewModel : ViewModel() {
         try {
             db = FirebaseFirestore.getInstance()
             fetchVideosFromFirebase()
+
+            // 👇 이 한 줄을 반드시 추가해야 앱이 켜질 때 폴더를 가져와서 화면에 보여줍니다! 👇
+            fetchFoldersFromFirebase()
+
         } catch (e: Exception) {
-            Log.e("SharedViewModel", "Firebase 초기화 오류: google-services 플러그인 또는 json 파일 확인 필요", e)
+            Log.e("SharedViewModel", "Firebase 초기화 오류", e)
         }
     }
 

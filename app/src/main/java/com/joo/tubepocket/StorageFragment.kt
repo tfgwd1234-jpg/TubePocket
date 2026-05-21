@@ -58,8 +58,9 @@ class StorageFragment : Fragment() {
 
         // 폴더보기 버튼 클릭 시
         btnViewFolder.setOnClickListener {
-            Toast.makeText(context, "폴더보기 화면으로 이동할게요!", Toast.LENGTH_SHORT).show()
-            // 다음에 구현할 코드 자리입니다.
+            parentFragmentManager.beginTransaction()
+                .replace(R.id.fragmentContainer, FolderFragment())
+                .commit()
         }
 
         // onViewCreated 안에 아래 코드들을 넣으세요
@@ -101,6 +102,23 @@ class StorageFragment : Fragment() {
 
             override fun afterTextChanged(s: Editable?) {}
         })
+        // onViewCreated 안쪽 윗부분에 추가하세요.
+        val currentFolder = arguments?.getString("FOLDER_NAME") ?: "모든 영상"
+        val tvCurrentFolder = view.findViewById<TextView>(R.id.tvCurrentFolder)
+
+        // xml을 수정하지 않고 코드에서 글자를 바꿔줍니다!
+        tvCurrentFolder?.text = currentFolder
+
+        // 기존의 sharedViewModel.videoList.observe 부분을 아래처럼 바꿔주세요.
+        sharedViewModel.videoList.observe(viewLifecycleOwner) { currentList ->
+            val filteredList = if (currentFolder == "모든 영상") {
+                currentList
+            } else {
+                // 태그에 #폴더이름 이 포함된 영상만 쏙쏙 골라냅니다!
+                currentList.filter { it.tags.contains("#$currentFolder") }
+            }
+            adapter.updateData(filteredList)
+        }
     }
     // 홈으로 이동하는 공통 함수
     private fun navigateToHome() {
@@ -111,5 +129,15 @@ class StorageFragment : Fragment() {
 
         // 2. MainActivity의 메뉴 UI 업데이트 호출
         (activity as? MainActivity)?.updateMenuUI(isHomeActive = true)
+    }
+    companion object {
+        // 폴더 이름을 담아서 StorageFragment를 만드는 마법의 상자
+        fun newInstance(folderName: String): StorageFragment {
+            val fragment = StorageFragment()
+            val args = Bundle()
+            args.putString("FOLDER_NAME", folderName)
+            fragment.arguments = args
+            return fragment
+        }
     }
 }

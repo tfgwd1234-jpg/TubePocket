@@ -7,6 +7,7 @@ import android.view.ViewGroup
 import android.widget.Button
 import android.widget.EditText
 import android.widget.ImageView
+import android.widget.TextView
 import android.widget.Toast
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.lifecycleScope
@@ -17,16 +18,12 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import org.jsoup.Jsoup
-import android.widget.TextView
 
 class AddLinkBottomSheetFragment : BottomSheetDialogFragment() {
 
     private lateinit var sharedViewModel: SharedViewModel
-
-    // [추가] 수정할 데이터를 담을 변수
     private var editingVideo: VideoItem? = null
 
-    // 외부에서 수정할 데이터를 넘겨주는 함수
     fun setEditingData(video: VideoItem) {
         this.editingVideo = video
     }
@@ -51,7 +48,23 @@ class AddLinkBottomSheetFragment : BottomSheetDialogFragment() {
         val etMemo = view.findViewById<EditText>(R.id.etMemo)
         val btnSaveLink = view.findViewById<Button>(R.id.btnSaveLink)
 
-        // [수정 모드일 때 화면 변경]
+        // 1. 파이어베이스에 저장된 폴더를 가져와서 화면에 동그란 칩(Chip)으로 보여줍니다.
+        sharedViewModel.folderList.observe(viewLifecycleOwner) { folders ->
+            chipGroupFolder.removeAllViews() // 처음에 있는 껍데기 샘플 지우기
+            for (folder in folders) {
+                val chip = Chip(requireContext())
+                chip.text = folder.name
+                chip.isCheckable = true
+
+                // 영상 수정 중일 때, 원래 선택되어 있던 폴더를 찾아서 체크해 둡니다.
+                if (editingVideo?.tags?.contains("#${folder.name}") == true) {
+                    chip.isChecked = true
+                }
+                chipGroupFolder.addView(chip)
+            }
+        }
+
+        // 2. 수정 모드일 때 기존 데이터를 화면에 채워줍니다.
         editingVideo?.let { video ->
             tvTitle.text = "영상 수정"
             etYoutubeLink.setText(video.videoUrl)
@@ -62,25 +75,32 @@ class AddLinkBottomSheetFragment : BottomSheetDialogFragment() {
 
         ivClose.setOnClickListener { dismiss() }
 
+        // 3. 저장(또는 수정) 버튼을 눌렀을 때
         btnSaveLink.setOnClickListener {
             val link = etYoutubeLink.text.toString().trim()
-            val tags = etTags.text.toString().trim()
+            var tags = etTags.text.toString().trim()
             val memo = etMemo.text.toString().trim()
-
-            val selectedChipId = chipGroupFolder.checkedChipId
-            var folderName = "일반"
-            if (selectedChipId != View.NO_ID) {
-                val selectedChip = view.findViewById<Chip>(selectedChipId)
-                folderName = selectedChip.text.toString()
-            }
 
             if (link.isEmpty()) {
                 Toast.makeText(context, "유튜브 링크를 입력해주세요.", Toast.LENGTH_SHORT).show()
                 return@setOnClickListener
             }
 
+            // [핵심] 어떤 폴더(칩)가 선택되었는지 확인합니다!
+            val selectedChipId = chipGroupFolder.checkedChipId
+            val folderName = if (selectedChipId != View.NO_ID) {
+                view.findViewById<Chip>(selectedChipId).text.toString()
+            } else {
+                "기본" // 아무것도 선택하지 않으면 '기본' 폴더로 지정
+            }
+
+            // 폴더 이름을 태그(tags)에 자동으로 추가해 줍니다. (중복 방지)
+            if (!tags.contains("#$folderName")) {
+                tags = "$tags #$folderName".trim()
+            }
+
             btnSaveLink.isEnabled = false
-            btnSaveLink.text = "영상 정보 불러오는 중..."
+            btnSaveLink.text = "처리 중..."
 
             lifecycleScope.launch(Dispatchers.IO) {
                 try {
@@ -91,24 +111,21 @@ class AddLinkBottomSheetFragment : BottomSheetDialogFragment() {
                     withContext(Dispatchers.Main) {
                         val newVideo = VideoItem(
                             title = if (fetchedTitle.isNotEmpty()) fetchedTitle else "제목을 불러올 수 없습니다",
-                            tags = if (tags.isNotEmpty()) tags else "#$folderName",
+                            tags = tags,
                             memo = if (memo.isNotEmpty()) "Memo: $memo" else "Memo: 없음",
                             duration = "0:00",
                             isShorts = link.contains("shorts", ignoreCase = true),
                             thumbnailUrl = fetchedThumb,
-                            timestamp = editingVideo?.timestamp
-                                ?: System.currentTimeMillis(), // 수정 시 기존 시간 유지
+                            timestamp = editingVideo?.timestamp ?: System.currentTimeMillis(),
                             videoUrl = link
                         )
 
                         if (editingVideo != null) {
-                            // [핵심] 기존 영상이 있으면 업데이트
                             sharedViewModel.updateVideo(editingVideo!!, newVideo)
                             Toast.makeText(context, "영상 정보가 수정되었습니다.", Toast.LENGTH_SHORT).show()
                         } else {
-                            // [핵심] 없으면 새로 저장
                             sharedViewModel.addVideo(newVideo)
-                            Toast.makeText(context, "보관함에 저장되었습니다.", Toast.LENGTH_SHORT).show()
+                            Toast.makeText(context, "[$folderName] 보관함에 저장되었습니다.", Toast.LENGTH_SHORT).show()
                         }
                         dismiss()
                     }
