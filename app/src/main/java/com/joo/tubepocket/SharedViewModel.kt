@@ -69,4 +69,28 @@ class SharedViewModel : ViewModel() {
             _videoList.value = ArrayList(currentList)
         }
     }
+    // SharedViewModel.kt에 추가
+    fun updateVideo(oldUrl: String, newItem: VideoItem) {
+        db?.collection("videos")
+            ?.whereEqualTo("videoUrl", oldUrl)
+            ?.get()
+            ?.addOnSuccessListener { querySnapshot ->
+                for (document in querySnapshot) {
+                    // 문서 ID를 찾아 데이터를 덮어씀
+                    db?.collection("videos")?.document(document.id)?.set(newItem)
+                }
+            }
+    }
+    // SharedViewModel.kt 내부에 추가
+    fun deleteVideo(item: VideoItem) {
+        // 1. Firebase에서 삭제
+        db?.collection("videos")
+            ?.whereEqualTo("videoUrl", item.videoUrl) // URL을 기준으로 해당 데이터 찾기
+            ?.get()
+            ?.addOnSuccessListener { querySnapshot ->
+                for (document in querySnapshot) {
+                    db?.collection("videos")?.document(document.id)?.delete()
+                }
+            }
+    }
 }

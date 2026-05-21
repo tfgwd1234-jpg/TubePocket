@@ -17,10 +17,18 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import org.jsoup.Jsoup
+import android.widget.TextView
 
 class AddLinkBottomSheetFragment : BottomSheetDialogFragment() {
 
     private lateinit var sharedViewModel: SharedViewModel
+    // [추가] 수정할 데이터를 담을 변수
+    private var editingVideo: VideoItem? = null
+
+    // 외부에서 수정할 데이터를 넘겨주는 함수
+    fun setEditingData(video: VideoItem) {
+        this.editingVideo = video
+    }
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
@@ -34,6 +42,7 @@ class AddLinkBottomSheetFragment : BottomSheetDialogFragment() {
 
         sharedViewModel = ViewModelProvider(requireActivity()).get(SharedViewModel::class.java)
 
+        val tvTitle = view.findViewById<TextView>(R.id.tvTitle)
         val ivClose = view.findViewById<ImageView>(R.id.ivClose)
         val etYoutubeLink = view.findViewById<EditText>(R.id.etYoutubeLink)
         val chipGroupFolder = view.findViewById<ChipGroup>(R.id.chipGroupFolder)
@@ -41,9 +50,16 @@ class AddLinkBottomSheetFragment : BottomSheetDialogFragment() {
         val etMemo = view.findViewById<EditText>(R.id.etMemo)
         val btnSaveLink = view.findViewById<Button>(R.id.btnSaveLink)
 
-        ivClose.setOnClickListener {
-            dismiss()
+        // [수정 모드일 때 화면 변경]
+        editingVideo?.let { video ->
+            tvTitle.text = "영상 수정"
+            etYoutubeLink.setText(video.videoUrl)
+            etTags.setText(video.tags)
+            etMemo.setText(video.memo.replace("Memo: ", ""))
+            btnSaveLink.text = "수정하기"
         }
+
+        ivClose.setOnClickListener { dismiss() }
 
         btnSaveLink.setOnClickListener {
             val link = etYoutubeLink.text.toString().trim()

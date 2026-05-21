@@ -13,11 +13,14 @@ import com.bumptech.glide.Glide
 import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
+import androidx.lifecycle.ViewModelProvider
 
 class VideoDetailActivity : AppCompatActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        // 시스템 바 영역 확보를 위한 테마 설정 확인
+        window.decorView.fitsSystemWindows = true
         setContentView(R.layout.activity_video_detail)
 
         // UI 요소 연결
@@ -85,6 +88,7 @@ class VideoDetailActivity : AppCompatActivity() {
         }
 
         // 4. 점 세개(더보기) 버튼 클릭 - 수정/삭제 팝업 메뉴
+        // VideoDetailActivity.kt의 ivMore 클릭 이벤트 부분 수정
         ivMore.setOnClickListener {
             val popup = PopupMenu(this, it)
             popup.menu.add(0, 0, 0, "수정")
@@ -92,12 +96,30 @@ class VideoDetailActivity : AppCompatActivity() {
 
             popup.setOnMenuItemClickListener { item ->
                 when (item.itemId) {
-                    0 -> {
-                        Toast.makeText(this, "수정 화면으로 이동 (준비 중)", Toast.LENGTH_SHORT).show()
+                    0 -> { // 수정
+                        val bottomSheet = AddLinkBottomSheetFragment()
+                        // 현재 데이터 전달
+                        val currentVideo = VideoItem(title, tags, memoText, "0:00", false, thumbnailUrl, timestamp, videoUrl)
+                        bottomSheet.setEditingData(currentVideo)
+                        bottomSheet.show(supportFragmentManager, bottomSheet.tag)
                         true
                     }
-                    1 -> {
-                        Toast.makeText(this, "삭제 확인 팝업 (준비 중)", Toast.LENGTH_SHORT).show()
+                    1 -> { // 삭제 확인 다이얼로그
+                        androidx.appcompat.app.AlertDialog.Builder(this)
+                            .setTitle("삭제")
+                            .setMessage("영상을 삭제 하시겠습니까?")
+                            .setPositiveButton("예") { _, _ ->
+                                // [수정된 부분] SharedViewModel을 명확히 가져와서 함수 호출
+                                val viewModel = ViewModelProvider(this).get(SharedViewModel::class.java)
+                                val currentVideo = VideoItem(title, tags, memoText, "0:00", false, thumbnailUrl, timestamp, videoUrl)
+
+                                viewModel.deleteVideo(currentVideo) // 이제 인식이 될 거예요
+
+                                Toast.makeText(this, "삭제되었습니다.", Toast.LENGTH_SHORT).show()
+                                finish()
+                            }
+                            .setNegativeButton("아니오", null)
+                            .show()
                         true
                     }
                     else -> false
