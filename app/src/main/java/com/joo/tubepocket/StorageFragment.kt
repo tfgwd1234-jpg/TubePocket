@@ -104,6 +104,18 @@ class StorageFragment : Fragment() {
         })
         // onViewCreated 안쪽 윗부분에 추가하세요.
         val currentFolder = arguments?.getString("FOLDER_NAME") ?: "모든 영상"
+
+        // 1. 좌측 상단 뒤로가기 이미지 버튼 클릭 시
+        ivBack.setOnClickListener {
+            handleStorageBackPress(currentFolder)
+        }
+
+        // 2. 휴대폰 물리 뒤로가기 버튼 클릭 시
+        requireActivity().onBackPressedDispatcher.addCallback(viewLifecycleOwner, object : OnBackPressedCallback(true) {
+            override fun handleOnBackPressed() {
+                handleStorageBackPress(currentFolder)
+            }
+        })
         val tvCurrentFolder = view.findViewById<TextView>(R.id.tvCurrentFolder)
 
         // xml을 수정하지 않고 코드에서 글자를 바꿔줍니다!
@@ -118,6 +130,21 @@ class StorageFragment : Fragment() {
                 currentList.filter { it.tags.contains("#$currentFolder") }
             }
             adapter.updateData(filteredList)
+        }
+    }
+    // [새로 추가하는 똑똑한 뒤로가기 함수] - onViewCreated 밖에 적어주세요!
+    private fun handleStorageBackPress(currentFolder: String) {
+        if (currentFolder == "모든 영상") {
+            // "모든 영상" 화면이었다면 원래대로 홈 화면으로 가고 하단 메뉴를 빨갛게 켭니다.
+            parentFragmentManager.beginTransaction()
+                .replace(R.id.fragmentContainer, HomeFragment())
+                .commit()
+            (activity as? MainActivity)?.updateMenuUI(isHomeActive = true)
+        } else {
+            // 특정 폴더 안으로 들어온 상태였다면 폴더보기 화면(FolderFragment)으로 돌아갑니다.
+            parentFragmentManager.beginTransaction()
+                .replace(R.id.fragmentContainer, FolderFragment())
+                .commit()
         }
     }
     // 홈으로 이동하는 공통 함수
