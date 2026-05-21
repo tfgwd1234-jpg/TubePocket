@@ -26,12 +26,16 @@ class FolderFragment : Fragment(R.layout.fragment_folder_view) {
         rvFolderList = view.findViewById(R.id.rvFolderList)
         rvFolderList.layoutManager = LinearLayoutManager(context)
 
+        // FolderFragment.kt 내부의 onViewCreated 함수 안쪽입니다.
+
+        // 어댑터 연결 부분에서 기존 코드를 아래처럼 바꿔주세요.
         adapter = FolderAdapter(currentFolderList, emptyList()) { clickedFolderName ->
             parentFragmentManager.beginTransaction()
                 .replace(R.id.fragmentContainer, StorageFragment.newInstance(clickedFolderName))
-                .addToBackStack(null)
+                // ⚠️ .addToBackStack(null) <- 이 줄이 있던 것을 완전히 지워버리세요!
                 .commit()
         }
+        rvFolderList.adapter = adapter
         rvFolderList.adapter = adapter
 
         val itemTouchHelper = ItemTouchHelper(simpleCallback)
