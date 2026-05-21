@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "15793998454",
+    "project_id": "tubepocket-4e9ee",
+    "storage_bucket": "tubepocket-4e9ee.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:15793998454:android:2d8882acb0f969cb4d2d57",
+        "android_client_info": {
+          "package_name": "com.joo.tubepocket"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyAzVkUK7Bo-pngu_2xzBdc2mVgVIAOaYng"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
