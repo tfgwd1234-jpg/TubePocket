@@ -134,14 +134,21 @@ class StorageFragment : Fragment() {
     }
     // [새로 추가하는 똑똑한 뒤로가기 함수] - onViewCreated 밖에 적어주세요!
     private fun handleStorageBackPress(currentFolder: String) {
-        if (currentFolder == "모든 영상") {
-            // "모든 영상" 화면이었다면 원래대로 홈 화면으로 가고 하단 메뉴를 빨갛게 켭니다.
+        // 내가 태그에서 넘어왔는지 확인하는 임시 표시표를 꺼내봅니다. 기본값은 false입니다.
+        val isFromTag = arguments?.getBoolean("IS_FROM_TAG", false) == true
+
+        if (isFromTag) {
+            // 👈 만약 태그 화면에서 온 게 맞다면, 뒤로가기 시 태그 관리 화면으로 돌려보냅니다!
+            parentFragmentManager.beginTransaction()
+                .replace(R.id.fragmentContainer, TagFragment())
+                .commit()
+            (activity as? MainActivity)?.updateMenuUI("TAG") // 하단 불빛도 태그로 켭니다.
+        } else if (currentFolder == "모든 영상") {
             parentFragmentManager.beginTransaction()
                 .replace(R.id.fragmentContainer, HomeFragment())
                 .commit()
-            (activity as? MainActivity)?.updateMenuUI(isHomeActive = true)
+            (activity as? MainActivity)?.updateMenuUI("HOME")
         } else {
-            // 특정 폴더 안으로 들어온 상태였다면 폴더보기 화면(FolderFragment)으로 돌아갑니다.
             parentFragmentManager.beginTransaction()
                 .replace(R.id.fragmentContainer, FolderFragment())
                 .commit()
@@ -155,7 +162,7 @@ class StorageFragment : Fragment() {
             .commit()
 
         // 2. MainActivity의 메뉴 UI 업데이트 호출
-        (activity as? MainActivity)?.updateMenuUI(isHomeActive = true)
+        (activity as? MainActivity)?.updateMenuUI("HOME") // 👈 "HOME" 문자열로 변경!
     }
     companion object {
         // 폴더 이름을 담아서 StorageFragment를 만드는 마법의 상자
@@ -163,6 +170,17 @@ class StorageFragment : Fragment() {
             val fragment = StorageFragment()
             val args = Bundle()
             args.putString("FOLDER_NAME", folderName)
+            args.putBoolean("IS_FROM_TAG", false) // 👈 폴더에서 올 때는 false라고 적어둡니다.
+            fragment.arguments = args
+            return fragment
+        }
+
+        // 👈 [새로 추가] 태그 이름을 담아서 StorageFragment를 만드는 마법의 상자
+        fun newTagInstance(tagName: String): StorageFragment {
+            val fragment = StorageFragment()
+            val args = Bundle()
+            args.putString("FOLDER_NAME", tagName)
+            args.putBoolean("IS_FROM_TAG", true) // 👈 태그에서 올 때는 true라고 표시를 남깁니다!
             fragment.arguments = args
             return fragment
         }

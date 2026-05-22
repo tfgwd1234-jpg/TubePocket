@@ -127,5 +127,48 @@ class VideoDetailActivity : AppCompatActivity() {
             }
             popup.show()
         }
+        val ivFavorite = findViewById<ImageView>(R.id.ivFavorite)
+        val db = com.google.firebase.firestore.FirebaseFirestore.getInstance()
+
+        // 주의: intent.getStringExtra("videoUrl") 부분은 현재 상세화면으로 넘어온 영상의 URL이나 고유값을 받는 변수로 맞춰주세요!
+        val currentVideoUrl = intent.getStringExtra("videoUrl") ?: ""
+        var isCurrentlyFavorite = false
+
+        // 1. 화면이 켜지면 파이어베이스에서 현재 즐겨찾기 상태를 확인해서 하트 모양을 결정합니다.
+        db.collection("videos").whereEqualTo("videoUrl", currentVideoUrl)
+            .get()
+            .addOnSuccessListener { documents ->
+                for (document in documents) {
+                    isCurrentlyFavorite = document.getBoolean("isFavorite") ?: false
+                    if (isCurrentlyFavorite) {
+                        ivFavorite.setImageResource(R.drawable.ic_heart_filled)
+                    } else {
+                        ivFavorite.setImageResource(R.drawable.ic_heart_empty)
+                    }
+                }
+            }
+
+        // 2. 하트를 클릭했을 때의 마법 기능!
+        ivFavorite.setOnClickListener {
+            isCurrentlyFavorite = !isCurrentlyFavorite // true -> false, false -> true 로 뒤집기
+
+            // 모양 바꾸고 메시지(Toast) 띄우기
+            if (isCurrentlyFavorite) {
+                ivFavorite.setImageResource(R.drawable.ic_heart_filled)
+                android.widget.Toast.makeText(this, "즐겨찾기에 등록되었습니다.", android.widget.Toast.LENGTH_SHORT).show()
+            } else {
+                ivFavorite.setImageResource(R.drawable.ic_heart_empty)
+                android.widget.Toast.makeText(this, "즐겨찾기에 해제되었습니다.", android.widget.Toast.LENGTH_SHORT).show()
+            }
+
+            // 파이어베이스에 바뀐 상태 진짜로 저장하기
+            db.collection("videos").whereEqualTo("videoUrl", currentVideoUrl)
+                .get()
+                .addOnSuccessListener { documents ->
+                    for (document in documents) {
+                        db.collection("videos").document(document.id).update("isFavorite", isCurrentlyFavorite)
+                    }
+                }
+        }
     }
 }

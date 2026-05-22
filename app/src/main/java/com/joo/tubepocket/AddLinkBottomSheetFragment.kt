@@ -44,7 +44,7 @@ class AddLinkBottomSheetFragment : BottomSheetDialogFragment() {
         val ivClose = view.findViewById<ImageView>(R.id.ivClose)
         val etYoutubeLink = view.findViewById<EditText>(R.id.etYoutubeLink)
         val chipGroupFolder = view.findViewById<ChipGroup>(R.id.chipGroupFolder)
-        val etTags = view.findViewById<EditText>(R.id.etTags)
+        val etTags = view.findViewById<android.widget.MultiAutoCompleteTextView>(R.id.etTags)
         val etMemo = view.findViewById<EditText>(R.id.etMemo)
         val btnSaveLink = view.findViewById<Button>(R.id.btnSaveLink)
 
@@ -64,6 +64,24 @@ class AddLinkBottomSheetFragment : BottomSheetDialogFragment() {
             }
         }
 
+        // [새로 추가된 기능] 기존 태그들을 모아서 콤보박스(자동완성) 어댑터에 연결합니다.
+        sharedViewModel.videoList.observe(viewLifecycleOwner) { videos ->
+            val uniqueTags = mutableSetOf<String>()
+            videos.forEach { video ->
+                // 태그들을 쉼표나 띄어쓰기 기준으로 쪼개서 모읍니다.
+                video.tags.split(" ", ",").forEach { word ->
+                    val cleanWord = word.trim()
+                    if (cleanWord.startsWith("#")) {
+                        uniqueTags.add(cleanWord)
+                    }
+                }
+            }
+            // 콤보박스에 모은 태그 리스트를 장착합니다.
+            val tagAdapter = android.widget.ArrayAdapter(requireContext(), android.R.layout.simple_dropdown_item_1line, uniqueTags.toList())
+            etTags.setAdapter(tagAdapter)
+            etTags.setTokenizer(android.widget.MultiAutoCompleteTextView.CommaTokenizer()) // 쉼표(,)를 치면 자동으로 다음 단어를 추천해 줍니다.
+        }
+
         // 2. 수정 모드일 때 기존 데이터를 화면에 채워줍니다.
         editingVideo?.let { video ->
             tvTitle.text = "영상 수정"
@@ -78,8 +96,10 @@ class AddLinkBottomSheetFragment : BottomSheetDialogFragment() {
         // 3. 저장(또는 수정) 버튼을 눌렀을 때
         btnSaveLink.setOnClickListener {
             val link = etYoutubeLink.text.toString().trim()
-            var tags = etTags.text.toString().trim()
             val memo = etMemo.text.toString().trim()
+
+            // [핵심] 콤보박스 자동완성으로 들어간 쉼표(,)를 빈칸(띄어쓰기)으로 깔끔하게 바꿔서 저장합니다!
+            var tags = etTags.text.toString().replace(",", " ").replace("  ", " ").trim()
 
             if (link.isEmpty()) {
                 Toast.makeText(context, "유튜브 링크를 입력해주세요.", Toast.LENGTH_SHORT).show()

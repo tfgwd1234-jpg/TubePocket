@@ -167,4 +167,16 @@
             </LinearLayout>
         </LinearLayout>
     </ScrollView>
+    <ImageView
+        android:id="@+id/ivFavorite"
+        android:layout_width="48dp"
+        android:layout_height="48dp"
+        android:padding="12dp"
+        android:src="@drawable/ic_heart_empty"
+        android:background="?android:attr/selectableItemBackgroundBorderless"
+        android:elevation="10dp"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        android:layout_marginTop="16dp"
+        android:layout_marginEnd="16dp" />
 </androidx.constraintlayout.widget.ConstraintLayout>

@@ -121,4 +121,43 @@ class SharedViewModel : ViewModel() {
                 }
             }
     }
+    // 👈 [새로 추가] 태그 이름을 바꾸는 마법의 함수
+    fun updateTagName(oldTag: String, newTag: String) {
+        val currentList = _videoList.value ?: return
+
+        // 모든 영상을 돌면서 기존 태그 글자를 새 태그 글자로 변경합니다.
+        val updatedList = currentList.map { video ->
+            if (video.tags.contains(oldTag)) {
+                // 영상의 전체 태그 문자열에서 옛날 태그를 새 태그로 쏙 바꿉니다.
+                // 예: "#게임 #요리" 에서 "#게임"을 "#스포츠"로 변환
+                val newTagsString = video.tags.replace(oldTag, newTag)
+                video.copy(tags = newTagsString) // 태그가 바뀐 새 영상 데이터로 교체
+            } else {
+                video // 해당 태그가 없는 영상은 그대로 둡니다.
+            }
+        }
+
+        // 전광판(_videoList)을 업데이트하여 화면이 스스로 다시 그려지게 합니다.
+        _videoList.value = updatedList.toMutableList() // 👈 변경된 부분!
+    }
+
+    // 👈 [새로 추가] 태그를 삭제하는 마법의 함수
+    fun deleteTag(tagToDelete: String) {
+        val currentList = _videoList.value ?: return
+
+        // 모든 영상을 돌면서 해당 태그를 지워버립니다.
+        val updatedList = currentList.map { video ->
+            if (video.tags.contains(tagToDelete)) {
+                // 태그를 빈칸으로 지우고, 앞뒤 공백을 깔끔하게 정리합니다.
+                var newTagsString = video.tags.replace(tagToDelete, "").trim()
+                // 연속된 공백이 생겼다면 하나로 줄여줍니다.
+                newTagsString = newTagsString.replace("\\s+".toRegex(), " ")
+                video.copy(tags = newTagsString)
+            } else {
+                video
+            }
+        }
+
+        _videoList.value = updatedList.toMutableList() // 👈 변경된 부분!
+    }
 }
