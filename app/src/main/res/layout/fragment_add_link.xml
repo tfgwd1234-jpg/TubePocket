@@ -64,51 +64,27 @@
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@+id/etYoutubeLink" />
 
-    <HorizontalScrollView
-        android:id="@+id/scrollChips"
-        android:layout_width="match_parent"
+    <TextView
+        android:id="@+id/tvSelectedFolderInfo"
+        android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_marginTop="8dp"
-        android:scrollbars="none"
-        app:layout_constraintTop_toBottomOf="@+id/tvFolderTitle">
+        android:text="선택된 폴더: 기본"
+        android:textColor="@color/main_red"
+        android:textSize="13sp"
+        android:textStyle="bold"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/tvFolderTitle" />
 
-        <com.google.android.material.chip.ChipGroup
-            android:id="@+id/chipGroupFolder"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            app:singleSelection="true"
-            app:selectionRequired="true">
-
-            <com.google.android.material.chip.Chip
-                android:id="@+id/chipGeneral"
-                style="@style/Widget.Material3.Chip.Filter"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="일반"
-                android:checked="true"/>
-
-            <com.google.android.material.chip.Chip
-                android:id="@+id/chipRecipe"
-                style="@style/Widget.Material3.Chip.Filter"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="요리/레시피" />
-
-            <com.google.android.material.chip.Chip
-                android:id="@+id/chipWorkout"
-                style="@style/Widget.Material3.Chip.Filter"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="운동" />
-
-            <com.google.android.material.chip.Chip
-                android:id="@+id/chipDev"
-                style="@style/Widget.Material3.Chip.Filter"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="개발/IT" />
-        </com.google.android.material.chip.ChipGroup>
-    </HorizontalScrollView>
+    <androidx.recyclerview.widget.RecyclerView
+        android:id="@+id/rvFolderTree"
+        android:layout_width="match_parent"
+        android:layout_height="150dp"  android:layout_marginTop="8dp"
+        android:background="@drawable/abc_menu_hardkey_panel_mtrl_mult"
+        android:backgroundTint="@color/search_bg"
+        android:padding="8dp"
+        android:scrollbars="vertical"
+        app:layout_constraintTop_toBottomOf="@+id/tvSelectedFolderInfo" />
 
     <TextView
         android:id="@+id/tvTagTitle"
@@ -120,7 +96,7 @@
         android:textSize="14sp"
         android:textStyle="bold"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/scrollChips" />
+        app:layout_constraintTop_toBottomOf="@+id/rvFolderTree" />
 
     <MultiAutoCompleteTextView
         android:id="@+id/etTags"

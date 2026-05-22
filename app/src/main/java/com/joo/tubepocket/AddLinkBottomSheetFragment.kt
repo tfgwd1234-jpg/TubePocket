@@ -43,24 +43,42 @@ class AddLinkBottomSheetFragment : BottomSheetDialogFragment() {
         val tvTitle = view.findViewById<TextView>(R.id.tvTitle)
         val ivClose = view.findViewById<ImageView>(R.id.ivClose)
         val etYoutubeLink = view.findViewById<EditText>(R.id.etYoutubeLink)
-        val chipGroupFolder = view.findViewById<ChipGroup>(R.id.chipGroupFolder)
+        // ⭕ 추가: 새로 만든 UI 요소들 연결 및 선택된 폴더 저장 변수
+        val tvSelectedFolderInfo = view.findViewById<TextView>(R.id.tvSelectedFolderInfo)
+        val rvFolderTree = view.findViewById<androidx.recyclerview.widget.RecyclerView>(R.id.rvFolderTree)
+        var selectedFolderName = "기본" // 제일 처음에는 '기본' 폴더로 설정해 둡니다.
+
         val etTags = view.findViewById<android.widget.MultiAutoCompleteTextView>(R.id.etTags)
         val etMemo = view.findViewById<EditText>(R.id.etMemo)
         val btnSaveLink = view.findViewById<Button>(R.id.btnSaveLink)
 
-        // 1. 파이어베이스에 저장된 폴더를 가져와서 화면에 동그란 칩(Chip)으로 보여줍니다.
-        sharedViewModel.folderList.observe(viewLifecycleOwner) { folders ->
-            chipGroupFolder.removeAllViews() // 처음에 있는 껍데기 샘플 지우기
-            for (folder in folders) {
-                val chip = Chip(requireContext())
-                chip.text = folder.name
-                chip.isCheckable = true
+        // 1. 보관함과 동일한 어댑터(트리구조)를 사용해서 폴더 목록 띄우기
+        val folderAdapter = FolderAdapter(mutableListOf(), emptyList()) { clickedFolderName ->
+            // 폴더를 클릭하면, 선택된 폴더 이름을 기억하고 화면 글씨도 예쁘게 바꿔줍니다!
+            selectedFolderName = clickedFolderName
+            tvSelectedFolderInfo.text = "선택된 폴더: $selectedFolderName"
+        }
+        rvFolderTree.layoutManager = androidx.recyclerview.widget.LinearLayoutManager(requireContext())
+        rvFolderTree.adapter = folderAdapter
 
-                // 영상 수정 중일 때, 원래 선택되어 있던 폴더를 찾아서 체크해 둡니다.
-                if (editingVideo?.tags?.contains("#${folder.name}") == true) {
-                    chip.isChecked = true
+        sharedViewModel.folderList.observe(viewLifecycleOwner) { folders ->
+            val videos = sharedViewModel.videoList.value ?: emptyList()
+
+            // 👉 [요청 1번 반영] 컴퓨터에게 번호표(orderIndex) 순서대로 똑바로 줄을 서라고 명령합니다!
+            val sortedFolders = folders.sortedBy { it.orderIndex }.toMutableList()
+
+            // 기존 코드에서 folders.toMutableList() 부분을 sortedFolders로 바꿔줍니다.
+            folderAdapter.updateData(sortedFolders, videos)
+
+            // 영상 수정 중일 때, 원래 들어있던 폴더를 찾아서 미리 글씨를 바꿔둡니다.
+            if (editingVideo != null) {
+                for (folder in folders) {
+                    if (editingVideo?.tags?.contains("#${folder.name}") == true) {
+                        selectedFolderName = folder.name
+                        tvSelectedFolderInfo.text = "선택된 폴더: $selectedFolderName"
+                        break
+                    }
                 }
-                chipGroupFolder.addView(chip)
             }
         }
 
@@ -106,13 +124,8 @@ class AddLinkBottomSheetFragment : BottomSheetDialogFragment() {
                 return@setOnClickListener
             }
 
-            // [핵심] 어떤 폴더(칩)가 선택되었는지 확인합니다!
-            val selectedChipId = chipGroupFolder.checkedChipId
-            val folderName = if (selectedChipId != View.NO_ID) {
-                view.findViewById<Chip>(selectedChipId).text.toString()
-            } else {
-                "기본" // 아무것도 선택하지 않으면 '기본' 폴더로 지정
-            }
+            // 리사이클러뷰에서 터치해서 변수에 저장해둔 폴더 이름을 바로 사용합니다!
+            val folderName = selectedFolderName
 
             // 폴더 이름을 태그(tags)에 자동으로 추가해 줍니다. (중복 방지)
             if (!tags.contains("#$folderName")) {
