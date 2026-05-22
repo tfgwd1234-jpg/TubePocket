@@ -15,6 +15,7 @@ class MainActivity : AppCompatActivity() {
     private lateinit var tvMenuHome: TextView
     private lateinit var tvMenuStorage: TextView
     private lateinit var tvMenuTag: TextView // 👈 태그 메뉴 변수 추가
+    private lateinit var tvMenuFavorite: TextView // 👈 [추가 1] 즐겨찾기 메뉴 변수 추가
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -26,6 +27,7 @@ class MainActivity : AppCompatActivity() {
         tvMenuHome = findViewById(R.id.tvMenuHome)
         tvMenuStorage = findViewById(R.id.tvMenuStorage)
         tvMenuTag = findViewById(R.id.tvMenuTag) // 👈 태그 메뉴 뷰 찾기 연결
+        tvMenuFavorite = findViewById(R.id.tvMenuFavorite) // 👈 [추가 2] XML에서 만든 아이디랑 연결
 
         // [화면 겹침 해결 코드]
         ViewCompat.setOnApplyWindowInsetsListener(mainLayout) { v, insets ->
@@ -55,6 +57,11 @@ class MainActivity : AppCompatActivity() {
             replaceFragment(TagFragment())
             updateMenuUI("TAG")
         }
+        // 👈 [추가 3] 하단 메뉴 '즐겨찾기' 버튼을 눌렀을 때 작동할 클릭 이벤트 추가!
+        tvMenuFavorite.setOnClickListener {
+            replaceFragment(FavoriteFragment()) // 즐겨찾기 화면으로 교체
+            updateMenuUI("FAVORITE") // 선택된 메뉴 색상을 변경
+        }
 
         // 4. 중앙 (+) 버튼 클릭 이벤트 (모달 띄우기)
         btnAddLink.setOnClickListener {
@@ -83,6 +90,10 @@ class MainActivity : AppCompatActivity() {
         tvMenuTag.setTextColor(inactiveColor)
         tvMenuTag.setTypeface(null, Typeface.NORMAL)
 
+        // 👈 [추가 4] 즐겨찾기 글씨도 기본 상태(회색)로 되돌려놓는 코드 추가
+        tvMenuFavorite.setTextColor(inactiveColor)
+        tvMenuFavorite.setTypeface(null, Typeface.NORMAL)
+
         // 2. 선택된 메뉴만 빨간색과 두꺼운 글씨로 바꿔줍니다.
         when (activeMenu) {
             "HOME" -> {
@@ -96,6 +107,10 @@ class MainActivity : AppCompatActivity() {
             "TAG" -> {
                 tvMenuTag.setTextColor(activeColor)
                 tvMenuTag.setTypeface(null, Typeface.BOLD)
+            }
+            "FAVORITE" -> { // 👈 [추가 5] 즐겨찾기를 선택했을 때 빨갛게 변하도록 추가
+                tvMenuFavorite.setTextColor(activeColor)
+                tvMenuFavorite.setTypeface(null, Typeface.BOLD)
             }
         }
     }

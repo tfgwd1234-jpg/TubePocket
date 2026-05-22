@@ -139,7 +139,8 @@ class VideoDetailActivity : AppCompatActivity() {
             .get()
             .addOnSuccessListener { documents ->
                 for (document in documents) {
-                    isCurrentlyFavorite = document.getBoolean("isFavorite") ?: false
+                    // 👈 기존 "isFavorite"을 "favorite"으로 수정했습니다!
+                    isCurrentlyFavorite = document.getBoolean("favorite") ?: false
                     if (isCurrentlyFavorite) {
                         ivFavorite.setImageResource(R.drawable.ic_heart_filled)
                     } else {
@@ -166,7 +167,8 @@ class VideoDetailActivity : AppCompatActivity() {
                 .get()
                 .addOnSuccessListener { documents ->
                     for (document in documents) {
-                        db.collection("videos").document(document.id).update("isFavorite", isCurrentlyFavorite)
+                        // 👈 기존 "isFavorite"을 "favorite"으로 수정했습니다!
+                        db.collection("videos").document(document.id).update("favorite", isCurrentlyFavorite)
                     }
                 }
         }
