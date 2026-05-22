@@ -16,10 +16,34 @@ class MainActivity : AppCompatActivity() {
     private lateinit var tvMenuStorage: TextView
     private lateinit var tvMenuTag: TextView // 👈 태그 메뉴 변수 추가
     private lateinit var tvMenuFavorite: TextView // 👈 [추가 1] 즐겨찾기 메뉴 변수 추가
+    // 👈 [추가] 뒤로가기 누른 시간을 기억하는 똑똑한 초시계 변수
+    private var backPressedTime: Long = 0
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
+
+        // 👇 [요청 5번 반영] 물리 뒤로가기 버튼 행동 규칙 정의 (여기에 통째로 추가하세요)
+        onBackPressedDispatcher.addCallback(this, object : androidx.activity.OnBackPressedCallback(true) {
+            override fun handleOnBackPressed() {
+                // 현재 화면이 무슨 화면인지 검사
+                val currentFragment = supportFragmentManager.findFragmentById(R.id.fragmentContainer)
+
+                if (currentFragment is HomeFragment) {
+                    // 홈 화면이라면: 2초 안에 두 번 눌러야 완전히 종료됨
+                    if (System.currentTimeMillis() - backPressedTime < 2000) {
+                        finish() // 앱 완전 종료
+                    } else {
+                        android.widget.Toast.makeText(this@MainActivity, "뒤로 버튼 한 번 더 누르시면 종료됩니다", android.widget.Toast.LENGTH_SHORT).show()
+                        backPressedTime = System.currentTimeMillis() // 시간 저장
+                    }
+                } else {
+                    // 홈 화면이 아니면(보관함, 태그 등) 무조건 홈 화면으로 이동!
+                    replaceFragment(HomeFragment())
+                    updateMenuUI("HOME")
+                }
+            }
+        })
 
         // UI 요소 연결
         val mainLayout = findViewById<androidx.constraintlayout.widget.ConstraintLayout>(R.id.mainLayout)

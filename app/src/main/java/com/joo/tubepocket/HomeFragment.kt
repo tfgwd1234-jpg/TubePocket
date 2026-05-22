@@ -38,9 +38,18 @@ class HomeFragment : Fragment() {
         adapter = VideoAdapter(emptyList())
         rvRecentVideos.adapter = adapter
 
-        // 3. 최근 영상 5개만 가져오기
+        // 이름표를 달아준 숫자 텍스트 연결
+        val tvTotalCount = view.findViewById<TextView>(R.id.tvTotalCount)
+        val tvFavoriteCount = view.findViewById<TextView>(R.id.tvFavoriteCount)
+
+        // 3. 뷰모델에서 영상 정보를 감지해서 화면 업데이트
         sharedViewModel.videoList.observe(viewLifecycleOwner) { list ->
-            val recentList = list.take(5) // 리스트의 상위 5개만 가져옴
+            // 👉 [요청 6번 반영] 실제 총 영상 개수와 즐겨찾기 개수로 숫자 갱신!
+            tvTotalCount?.text = list.size.toString()
+            tvFavoriteCount?.text = list.filter { it.isFavorite == true }.size.toString()
+
+            // 최근 영상 5개만 화면에 띄우기
+            val recentList = list.take(5)
             adapter.updateData(recentList)
         }
 

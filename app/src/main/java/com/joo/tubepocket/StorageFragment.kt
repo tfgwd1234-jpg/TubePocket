@@ -46,15 +46,10 @@ class StorageFragment : Fragment() {
             adapter.updateData(currentList)
         }
         // UI 요소 연결
-        val ivBack = view.findViewById<ImageView>(R.id.ivBack)
         val ivSearch = view.findViewById<ImageView>(R.id.ivSearch)
         val ivSetting = view.findViewById<ImageView>(R.id.ivSetting)
         val btnViewFolder = view.findViewById<TextView>(R.id.btnViewFolder)
 
-        // 좌측 상단 뒤로가기 버튼
-        ivBack.setOnClickListener {
-            navigateToHome()
-        }
 
         // 폴더보기 버튼 클릭 시
         btnViewFolder.setOnClickListener {
@@ -65,13 +60,6 @@ class StorageFragment : Fragment() {
 
         // onViewCreated 안에 아래 코드들을 넣으세요
         val etSearch = view.findViewById<EditText>(R.id.etSearch)
-
-        // 1. 뒤로가기 기능 (좌측 상단 버튼)
-        view.findViewById<ImageView>(R.id.ivBack).setOnClickListener {
-            requireActivity().supportFragmentManager.beginTransaction()
-                .replace(R.id.fragmentContainer, HomeFragment())
-                .commit()
-        }
 
         // 물리 뒤로가기 버튼
         requireActivity().onBackPressedDispatcher.addCallback(viewLifecycleOwner, object : OnBackPressedCallback(true) {
@@ -104,11 +92,6 @@ class StorageFragment : Fragment() {
         })
         // onViewCreated 안쪽 윗부분에 추가하세요.
         val currentFolder = arguments?.getString("FOLDER_NAME") ?: "모든 영상"
-
-        // 1. 좌측 상단 뒤로가기 이미지 버튼 클릭 시
-        ivBack.setOnClickListener {
-            handleStorageBackPress(currentFolder)
-        }
 
         // 2. 휴대폰 물리 뒤로가기 버튼 클릭 시
         requireActivity().onBackPressedDispatcher.addCallback(viewLifecycleOwner, object : OnBackPressedCallback(true) {
