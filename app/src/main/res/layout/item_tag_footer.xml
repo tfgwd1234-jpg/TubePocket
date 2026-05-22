@@ -7,9 +7,14 @@
     android:gravity="center">
 
     <TextView
-        android:layout_width="wrap_content"
+        android:id="@+id/tvGuideMessage"
+        android:layout_width="match_parent"
         android:layout_height="wrap_content"
+        android:layout_marginTop="8dp"
+        android:layout_marginBottom="8dp"
+        android:background="@drawable/bg_guide_box"
+        android:gravity="center"
         android:text="💡 태그를 길게 누르면 수정 및 삭제가 가능합니다."
-        android:textColor="@color/text_gray"
-        android:textSize="13sp" />
+        android:textColor="#ff3737"
+        android:textSize="12sp" />
 </LinearLayout>
