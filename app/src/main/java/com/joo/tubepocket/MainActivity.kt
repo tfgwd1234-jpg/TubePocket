@@ -92,6 +92,19 @@ class MainActivity : AppCompatActivity() {
             val bottomSheet = AddLinkBottomSheetFragment()
             bottomSheet.show(supportFragmentManager, bottomSheet.tag)
         }
+        // 👇 여기부터 추가하세요 👇
+        // 유튜브 등에서 '공유하기'를 통해 앱이 열렸을 때 새 영상 추가 창을 자동으로 띄웁니다.
+        if (intent?.action == android.content.Intent.ACTION_SEND && intent.type == "text/plain") {
+            val sharedText = intent.getStringExtra(android.content.Intent.EXTRA_TEXT) // 👈 전달된 링크 꺼내기
+            val bottomSheet = AddLinkBottomSheetFragment()
+
+            if (sharedText != null) {
+                bottomSheet.setSharedLink(sharedText) // 👈 바텀시트(입력창)로 링크 건네주기
+            }
+
+            bottomSheet.show(supportFragmentManager, bottomSheet.tag)
+        }
+        // 👆 여기까지 추가하세요 👆
     }
 
     // 프래그먼트를 교체하는 함수

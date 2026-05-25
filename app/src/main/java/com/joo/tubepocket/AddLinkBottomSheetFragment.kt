@@ -28,6 +28,14 @@ class AddLinkBottomSheetFragment : BottomSheetDialogFragment() {
         this.editingVideo = video
     }
 
+    // 👇 여기부터 추가하세요 👇
+    private var sharedLink: String? = null
+
+    fun setSharedLink(link: String) {
+        this.sharedLink = link
+    }
+    // 👆 여기까지 추가하세요 👆
+
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
         savedInstanceState: Bundle?
@@ -37,6 +45,14 @@ class AddLinkBottomSheetFragment : BottomSheetDialogFragment() {
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
+        // 👇 여기부터 추가하세요 👇
+        // 화면 하단 내비게이션바와 겹치지 않도록 아래쪽에 여백(패딩)을 추가합니다.
+        androidx.core.view.ViewCompat.setOnApplyWindowInsetsListener(view) { v, insets ->
+            val systemBars = insets.getInsets(androidx.core.view.WindowInsetsCompat.Type.systemBars())
+            v.setPadding(v.paddingLeft, v.paddingTop, v.paddingRight, systemBars.bottom + 60)
+            insets
+        }
+        // 👆 여기까지 추가하세요 👆
 
         sharedViewModel = ViewModelProvider(requireActivity()).get(SharedViewModel::class.java)
 
@@ -108,6 +124,13 @@ class AddLinkBottomSheetFragment : BottomSheetDialogFragment() {
             etMemo.setText(video.memo.replace("Memo: ", ""))
             btnSaveLink.text = "수정하기"
         }
+
+        // 👇 여기부터 추가하세요 👇
+        // 넘어온 링크가 있다면 유튜브 링크 칸에 자동으로 입력해 줍니다!
+        sharedLink?.let { link ->
+            etYoutubeLink.setText(link)
+        }
+        // 👆 여기까지 추가하세요 👆
 
         ivClose.setOnClickListener { dismiss() }
 

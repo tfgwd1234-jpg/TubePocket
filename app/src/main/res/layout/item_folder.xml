@@ -26,15 +26,15 @@
     <ImageView
         android:layout_width="24dp"
         android:layout_height="24dp"
-        android:src="@android:drawable/ic_menu_gallery"
-        app:tint="@color/text_gray" xmlns:app="http://schemas.android.com/apk/res-auto" />
+        android:src="@drawable/ic_menu_folder"
+        app:tint="#efc54c" xmlns:app="http://schemas.android.com/apk/res-auto" />
 
     <TextView
         android:id="@+id/tvFolderName"
         android:layout_width="0dp"
         android:layout_height="wrap_content"
         android:layout_weight="1"
-        android:layout_marginStart="12dp"
+        android:layout_marginStart="5dp"
         android:textColor="@color/text_dark"
         android:textSize="16sp"
         android:text="폴더 이름" />

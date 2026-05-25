@@ -33,13 +33,15 @@
             android:background="@drawable/abc_menu_hardkey_panel_mtrl_mult"
             android:backgroundTint="@color/search_bg"
             android:hint="제목, 태그, 메모 검색"
+            android:textColorHint="#a3a3a3"
             android:paddingHorizontal="12dp"
             android:singleLine="true"
             android:textSize="14sp"
             app:layout_constraintBottom_toBottomOf="parent"
             app:layout_constraintEnd_toStartOf="@+id/ivSettings"
             app:layout_constraintStart_toEndOf="@+id/tvLogo"
-            app:layout_constraintTop_toTopOf="parent" />
+            app:layout_constraintTop_toTopOf="parent"
+            android:textColor="#000000" />
 
         <ImageView
             android:id="@+id/ivSettings"

@@ -19,6 +19,8 @@
             android:layout_centerVertical="true"
             android:layout_marginHorizontal="10dp"
             android:hint="검색어를 입력하세요"
+            android:textColorHint="#a3a3a3"
+            android:textColor="#000000"
             android:textSize="14sp"
             android:background="@android:drawable/edit_text" />
 
@@ -54,6 +56,7 @@
             android:layout_height="wrap_content"
             android:layout_weight="1"
             android:text="모든 영상"
+            android:textColor="#000000"
             android:textSize="20sp"
             android:textStyle="bold" />
 

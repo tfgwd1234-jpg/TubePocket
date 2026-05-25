@@ -57,7 +57,7 @@
             android:background="@drawable/abc_menu_hardkey_panel_mtrl_mult"
             android:backgroundTint="#000000"
             android:padding="6dp"
-            android:src="@android:drawable/ic_menu_more"
+            android:src="@drawable/ic_menu_more"
             app:tint="#FFFFFF" />
     </LinearLayout>
 </RelativeLayout>
