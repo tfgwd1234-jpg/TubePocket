@@ -61,30 +61,19 @@ class AddLinkBottomSheetFragment : BottomSheetDialogFragment() {
         val etYoutubeLink = view.findViewById<EditText>(R.id.etYoutubeLink)
         // ⭕ 추가: 새로 만든 UI 요소들 연결 및 선택된 폴더 저장 변수
         val tvSelectedFolderInfo = view.findViewById<TextView>(R.id.tvSelectedFolderInfo)
-        val rvFolderTree = view.findViewById<androidx.recyclerview.widget.RecyclerView>(R.id.rvFolderTree)
-        var selectedFolderName = "기본" // 제일 처음에는 '기본' 폴더로 설정해 둡니다.
+        val btnSelectFolder = view.findViewById<Button>(R.id.btnSelectFolder) // 리스트 대신 버튼 연결!
+        var selectedFolderName = "기본"
 
         val etTags = view.findViewById<android.widget.MultiAutoCompleteTextView>(R.id.etTags)
         val etMemo = view.findViewById<EditText>(R.id.etMemo)
         val btnSaveLink = view.findViewById<Button>(R.id.btnSaveLink)
 
-        // 1. 보관함과 동일한 어댑터(트리구조)를 사용해서 폴더 목록 띄우기
-        val folderAdapter = FolderAdapter(mutableListOf(), emptyList()) { clickedFolderName ->
-            // 폴더를 클릭하면, 선택된 폴더 이름을 기억하고 화면 글씨도 예쁘게 바꿔줍니다!
-            selectedFolderName = clickedFolderName
-            tvSelectedFolderInfo.text = "선택된 폴더: $selectedFolderName"
-        }
-        rvFolderTree.layoutManager = androidx.recyclerview.widget.LinearLayoutManager(requireContext())
-        rvFolderTree.adapter = folderAdapter
+        // 폴더 목록을 잠시 담아둘 바구니를 만듭니다.
+        var currentSortedFolders = mutableListOf<FolderItem>()
 
         sharedViewModel.folderList.observe(viewLifecycleOwner) { folders ->
-            val videos = sharedViewModel.videoList.value ?: emptyList()
-
-            // 👉 [요청 1번 반영] 컴퓨터에게 번호표(orderIndex) 순서대로 똑바로 줄을 서라고 명령합니다!
-            val sortedFolders = folders.sortedBy { it.orderIndex }.toMutableList()
-
-            // 기존 코드에서 folders.toMutableList() 부분을 sortedFolders로 바꿔줍니다.
-            folderAdapter.updateData(sortedFolders, videos)
+            // 폴더 목록을 번호순으로 정리해서 바구니에 잘 담아둡니다.
+            currentSortedFolders = folders.sortedBy { it.orderIndex }.toMutableList()
 
             // 영상 수정 중일 때, 원래 들어있던 폴더를 찾아서 미리 글씨를 바꿔둡니다.
             if (editingVideo != null) {
@@ -97,6 +86,35 @@ class AddLinkBottomSheetFragment : BottomSheetDialogFragment() {
                 }
             }
         }
+
+            // 👇👇 여기부터 통째로 추가하세요 👇👇
+            // [새로 추가된 기능] 폴더 선택하기 버튼을 누르면 팝업창(Dialog)이 뜹니다!
+            btnSelectFolder.setOnClickListener {
+                var dialog: android.app.AlertDialog? = null
+
+                // 기존 '폴더 보기' 화면과 완벽하게 똑같이 생기도록 가상의 리스트 뷰를 하나 만듭니다.
+                val recyclerView = androidx.recyclerview.widget.RecyclerView(requireContext())
+                recyclerView.layoutManager = androidx.recyclerview.widget.LinearLayoutManager(requireContext())
+                recyclerView.setPadding(30, 30, 30, 30) // 화면이 너무 꽉 차지 않게 테두리 여백을 줍니다.
+
+                val videos = sharedViewModel.videoList.value ?: emptyList()
+
+                // 유령 코드 아님! 우리가 이미 만들어둔 FolderAdapter를 재사용해서 팝업창 안에 끼워 넣습니다.
+                val popupAdapter = FolderAdapter(currentSortedFolders, videos) { clickedFolderName ->
+                    selectedFolderName = clickedFolderName
+                    tvSelectedFolderInfo.text = "선택된 폴더: $selectedFolderName"
+                    dialog?.dismiss() // 폴더를 누르면 자동으로 팝업창이 닫힙니다!
+                }
+                recyclerView.adapter = popupAdapter
+
+                // 안드로이드 기본 팝업창 껍데기에 우리가 만든 리스트 뷰를 씌워서 보여줍니다.
+                dialog = android.app.AlertDialog.Builder(requireContext())
+                    .setTitle("폴더 선택")
+                    .setView(recyclerView)
+                    .setNegativeButton("닫기", null)
+                    .show()
+            }
+            // 👆👆 여기까지 추가하세요 👆👆
 
         // [새로 추가된 기능] 기존 태그들을 모아서 콤보박스(자동완성) 어댑터에 연결합니다.
         sharedViewModel.videoList.observe(viewLifecycleOwner) { videos ->

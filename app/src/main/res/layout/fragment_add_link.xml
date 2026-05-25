@@ -85,15 +85,16 @@
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toBottomOf="@+id/tvFolderTitle" />
 
-        <androidx.recyclerview.widget.RecyclerView
-            android:id="@+id/rvFolderTree"
-            android:layout_width="match_parent"
-            android:layout_height="150dp"
+        <Button
+            android:id="@+id/btnSelectFolder"
+            android:layout_width="wrap_content"
+            android:layout_height="40dp"
             android:layout_marginTop="8dp"
-            android:background="@drawable/abc_menu_hardkey_panel_mtrl_mult"
-            android:backgroundTint="@color/search_bg"
-            android:padding="8dp"
-            android:scrollbars="vertical"
+            android:backgroundTint="#F2F2F2"
+            android:text="폴더 선택하기"
+            android:textColor="#000000"
+            android:textSize="12sp"
+            app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toBottomOf="@+id/tvSelectedFolderInfo" />
 
         <TextView
@@ -106,7 +107,7 @@
             android:textSize="14sp"
             android:textStyle="bold"
             app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toBottomOf="@+id/rvFolderTree" />
+            app:layout_constraintTop_toBottomOf="@+id/btnSelectFolder" />
 
         <MultiAutoCompleteTextView
             android:id="@+id/etTags"

@@ -53,7 +53,25 @@ class FavoriteFragment : Fragment(R.layout.fragment_storage) {
         // --- 새로 추가되는 부분 시작: 스피너 설정 및 동작 ---
         val spinnerSort = view.findViewById<android.widget.Spinner>(R.id.spinnerSort)
         val sortOptions = arrayOf("등록일자(최신순)", "등록일자(오래된순)", "이름순")
-        val spinnerAdapter = android.widget.ArrayAdapter(requireContext(), android.R.layout.simple_spinner_dropdown_item, sortOptions)
+        // [요청 반영] 어댑터를 만들 때 글자색과 여백을 직접 수정하도록 설정합니다.
+        val spinnerAdapter = object : android.widget.ArrayAdapter<String>(requireContext(), android.R.layout.simple_spinner_item, sortOptions) {
+            // 1. 현재 선택된 뷰 (기존과 동일)
+            override fun getView(position: Int, convertView: View?, parent: android.view.ViewGroup): View {
+                val view = super.getView(position, convertView, parent) as TextView
+                view.setTextColor(android.graphics.Color.BLACK)
+                view.setPadding(0, 0, 0, 0)
+                return view
+            }
+
+            // 2. [추가] 클릭해서 펼쳐진 목록 뷰 (여기를 수정하면 목록 간격이 넓어집니다!)
+            override fun getDropDownView(position: Int, convertView: View?, parent: android.view.ViewGroup): View {
+                val view = super.getDropDownView(position, convertView, parent) as TextView
+                view.setTextColor(android.graphics.Color.WHITE)
+                // 위아래 간격을 40 정도로 주면 목록이 시원하게 떨어집니다.
+                view.setPadding(30, 40, 30, 40)
+                return view
+            }
+        }
         spinnerSort.adapter = spinnerAdapter
 
         spinnerSort.onItemSelectedListener = object : android.widget.AdapterView.OnItemSelectedListener {
