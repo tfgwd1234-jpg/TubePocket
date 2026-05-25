@@ -21,6 +21,19 @@ class StorageFragment : Fragment() {
     private lateinit var sharedViewModel: SharedViewModel
     private lateinit var adapter: VideoAdapter
 
+    // --- 새로 추가되는 부분 시작 ---
+    private var currentSortOption = 0 // 0: 최신순, 1: 오래된순, 2: 이름순
+
+    private fun getSortedList(list: List<VideoItem>): List<VideoItem> {
+        return when (currentSortOption) {
+            0 -> list.sortedByDescending { it.timestamp } // 최신순 (기본값)
+            1 -> list.sortedBy { it.timestamp }           // 오래된순
+            2 -> list.sortedBy { it.title }               // 이름순
+            else -> list
+        }
+    }
+    // --- 새로 추가되는 부분 끝 ---
+
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
         savedInstanceState: Bundle?
@@ -30,6 +43,9 @@ class StorageFragment : Fragment() {
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
+
+        // 추가된 부분: 아래에 있던 currentFolder 코드를 맨 위로 올려주어 컴퓨터가 먼저 알 수 있게 합니다.
+        val currentFolder = arguments?.getString("FOLDER_NAME") ?: "모든 영상"
 
         // 메인 액티비티에 종속된 뷰모델(공용 창고) 가져오기
         sharedViewModel = ViewModelProvider(requireActivity()).get(SharedViewModel::class.java)
@@ -43,7 +59,7 @@ class StorageFragment : Fragment() {
 
         // 공용 창고의 리스트 변경을 감지(observe)하여 자동으로 어댑터 갱신
         sharedViewModel.videoList.observe(viewLifecycleOwner) { currentList ->
-            adapter.updateData(currentList)
+            adapter.updateData(getSortedList(currentList))
         }
         // UI 요소 연결
         val ivSearch = view.findViewById<ImageView>(R.id.ivSearch)
@@ -57,6 +73,47 @@ class StorageFragment : Fragment() {
                 .replace(R.id.fragmentContainer, FolderFragment())
                 .commit()
         }
+
+        // --- 새로 추가되는 부분 시작: 스피너 설정 및 동작 ---
+        val spinnerSort = view.findViewById<android.widget.Spinner>(R.id.spinnerSort)
+        val sortOptions = arrayOf("등록일자(최신순)", "등록일자(오래된순)", "이름순")
+        val spinnerAdapter = android.widget.ArrayAdapter(requireContext(), android.R.layout.simple_spinner_dropdown_item, sortOptions)
+        spinnerSort.adapter = spinnerAdapter
+
+        spinnerSort.onItemSelectedListener = object : android.widget.AdapterView.OnItemSelectedListener {
+            override fun onItemSelected(parent: android.widget.AdapterView<*>?, view: View?, position: Int, id: Long) {
+                currentSortOption = position
+
+                // 정렬 기준이 바뀌면 현재 조건(검색어, 폴더)에 맞춰 다시 정렬하여 보여줍니다.
+                // 수정된 부분: view 대신 requireView()를 사용합니다.
+                val etSearch = requireView().findViewById<EditText>(R.id.etSearch)
+                val query = etSearch.text.toString()
+                val originalList = sharedViewModel.videoList.value ?: mutableListOf()
+
+                // 1. 폴더 필터링
+                val folderFiltered = if (currentFolder == "모든 영상") {
+                    originalList
+                } else {
+                    originalList.filter { it.tags.contains("#$currentFolder") }
+                }
+
+                // 2. 검색어 필터링
+                val finalList = if (query.isEmpty()) {
+                    folderFiltered
+                } else {
+                    folderFiltered.filter { item ->
+                        item.title.contains(query, ignoreCase = true) ||
+                                item.tags.contains(query, ignoreCase = true)
+                    }
+                }
+
+                // 3. 정렬 후 화면 업데이트
+                adapter.updateData(getSortedList(finalList))
+            }
+
+            override fun onNothingSelected(parent: android.widget.AdapterView<*>?) {}
+        }
+        // --- 새로 추가되는 부분 끝 ---
 
         // onViewCreated 안에 아래 코드들을 넣으세요
         val etSearch = view.findViewById<EditText>(R.id.etSearch)
@@ -77,21 +134,20 @@ class StorageFragment : Fragment() {
                 val originalList = sharedViewModel.videoList.value ?: mutableListOf()
 
                 if (query.isEmpty()) {
-                    adapter.updateData(originalList)
+                    adapter.updateData(getSortedList(originalList))
                 } else {
                     // [핵심] 제목(title) 또는 태그(tags)에 해당 글자가 포함되어 있는지 검사
                     val filteredList = originalList.filter { item ->
                         item.title.contains(query, ignoreCase = true) ||
                                 item.tags.contains(query, ignoreCase = true)
                     }
-                    adapter.updateData(filteredList)
+                    adapter.updateData(getSortedList(filteredList))
                 }
             }
 
             override fun afterTextChanged(s: Editable?) {}
         })
-        // onViewCreated 안쪽 윗부분에 추가하세요.
-        val currentFolder = arguments?.getString("FOLDER_NAME") ?: "모든 영상"
+
 
         // 2. 휴대폰 물리 뒤로가기 버튼 클릭 시
         requireActivity().onBackPressedDispatcher.addCallback(viewLifecycleOwner, object : OnBackPressedCallback(true) {
@@ -112,7 +168,7 @@ class StorageFragment : Fragment() {
                 // 태그에 #폴더이름 이 포함된 영상만 쏙쏙 골라냅니다!
                 currentList.filter { it.tags.contains("#$currentFolder") }
             }
-            adapter.updateData(filteredList)
+            adapter.updateData(getSortedList(filteredList))
         }
     }
     // [새로 추가하는 똑똑한 뒤로가기 함수] - onViewCreated 밖에 적어주세요!

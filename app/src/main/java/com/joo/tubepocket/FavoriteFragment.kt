@@ -17,6 +17,19 @@ class FavoriteFragment : Fragment(R.layout.fragment_storage) {
     private lateinit var sharedViewModel: SharedViewModel
     private lateinit var adapter: VideoAdapter
 
+    // --- 새로 추가되는 부분 시작 ---
+    private var currentSortOption = 0
+
+    private fun getSortedList(list: List<VideoItem>): List<VideoItem> {
+        return when (currentSortOption) {
+            0 -> list.sortedByDescending { it.timestamp } // 최신순
+            1 -> list.sortedBy { it.timestamp }           // 오래된순
+            2 -> list.sortedBy { it.title }               // 이름순
+            else -> list
+        }
+    }
+    // --- 새로 추가되는 부분 끝 ---
+
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
@@ -37,6 +50,38 @@ class FavoriteFragment : Fragment(R.layout.fragment_storage) {
         val btnViewFolder = view.findViewById<TextView>(R.id.btnViewFolder)
         btnViewFolder.visibility = View.GONE
 
+        // --- 새로 추가되는 부분 시작: 스피너 설정 및 동작 ---
+        val spinnerSort = view.findViewById<android.widget.Spinner>(R.id.spinnerSort)
+        val sortOptions = arrayOf("등록일자(최신순)", "등록일자(오래된순)", "이름순")
+        val spinnerAdapter = android.widget.ArrayAdapter(requireContext(), android.R.layout.simple_spinner_dropdown_item, sortOptions)
+        spinnerSort.adapter = spinnerAdapter
+
+        spinnerSort.onItemSelectedListener = object : android.widget.AdapterView.OnItemSelectedListener {
+            override fun onItemSelected(parent: android.widget.AdapterView<*>?, view: View?, position: Int, id: Long) {
+                currentSortOption = position
+
+                // 수정된 부분: view 대신 requireView()를 사용합니다.
+                val etSearch = requireView().findViewById<EditText>(R.id.etSearch)
+                val query = etSearch.text.toString()
+
+                val allVideos = sharedViewModel.videoList.value ?: mutableListOf()
+                val favoriteVideos = allVideos.filter { it.isFavorite == true }
+
+                val finalList = if (query.isEmpty()) {
+                    favoriteVideos
+                } else {
+                    favoriteVideos.filter { item ->
+                        item.title.contains(query, ignoreCase = true) ||
+                                item.tags.contains(query, ignoreCase = true)
+                    }
+                }
+                adapter.updateData(getSortedList(finalList))
+            }
+
+            override fun onNothingSelected(parent: android.widget.AdapterView<*>?) {}
+        }
+        // --- 새로 추가되는 부분 끝 ---
+
         // 화면 제목을 '모든 영상'에서 '즐겨찾기'로 변경 (선택 센스!)
         view.findViewById<TextView>(R.id.tvCurrentFolder)?.text = "즐겨찾기"
 
@@ -54,7 +99,7 @@ class FavoriteFragment : Fragment(R.layout.fragment_storage) {
 
             // 검색창이 비어있으면 그냥 즐겨찾기 전체를 보여줌
             if (etSearch.text.isEmpty()) {
-                adapter.updateData(favoriteVideos)
+                adapter.updateData(getSortedList(favoriteVideos))
             }
         }
 
@@ -68,14 +113,14 @@ class FavoriteFragment : Fragment(R.layout.fragment_storage) {
                 val favoriteVideos = allVideos.filter { it.isFavorite == true }
 
                 if (query.isEmpty()) {
-                    adapter.updateData(favoriteVideos) // 빈칸이면 즐겨찾기 전체
+                    adapter.updateData(getSortedList(favoriteVideos))
                 } else {
                     // 제목이나 태그에 검색어가 있는 것만 걸러내기
                     val filteredList = favoriteVideos.filter { item ->
                         item.title.contains(query, ignoreCase = true) ||
                                 item.tags.contains(query, ignoreCase = true)
                     }
-                    adapter.updateData(filteredList)
+                    adapter.updateData(getSortedList(filteredList))
                 }
             }
             override fun afterTextChanged(s: Editable?) {}
